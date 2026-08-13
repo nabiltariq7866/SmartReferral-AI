@@ -1,5 +1,5 @@
-import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { Children, isValidElement, useEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type ReactElement, type ReactNode, type SelectHTMLAttributes } from 'react'
+import { Check, ChevronDown, X } from 'lucide-react'
 import type { Readiness, Risk } from '../types/domain'
 
 export const Button=({variant='primary',className='',type='button',...props}:ButtonHTMLAttributes<HTMLButtonElement>&{variant?:'primary'|'secondary'|'ghost'|'danger'})=><button type={type} className={`button ${variant} ${className}`} {...props}/>
@@ -15,3 +15,17 @@ export function Drawer({open,onClose,title,children}:{open:boolean;onClose:()=>v
 export const Field=({label,children,hint}:{label:string;children:ReactNode;hint?:string})=><label className="field"><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>
 export const PageHeader=({title,subtitle,actions}:{title:string;subtitle:string;actions?:ReactNode})=><header className="page-header"><div><h1>{title}</h1><p>{subtitle}</p></div>{actions&&<div className="page-actions">{actions}</div>}</header>
 export const Skeleton=({rows=3}:{rows?:number})=><div className="skeleton" role="status" aria-label="Loading">{Array.from({length:rows},(_,i)=><i key={i}/>)}</div>
+
+type OptionProps={value?:string;children?:ReactNode;disabled?:boolean}
+export function CustomSelect({children,value,defaultValue,onChange,disabled,name,'aria-label':ariaLabel,className=''}:Omit<SelectHTMLAttributes<HTMLSelectElement>,'multiple'|'size'>){
+ const options=Children.toArray(children).filter(isValidElement).map(node=>{const option=node as ReactElement<OptionProps>;return{value:String(option.props.value??option.props.children??''),label:option.props.children,disabled:option.props.disabled}})
+ const controlled=value!==undefined,[internal,setInternal]=useState(String(defaultValue??options[0]?.value??'')),selected=String(controlled?value:internal),[open,setOpen]=useState(false),ref=useRef<HTMLDivElement>(null)
+ useEffect(()=>{const close=(event:MouseEvent)=>{if(!ref.current?.contains(event.target as Node))setOpen(false)};document.addEventListener('mousedown',close);return()=>document.removeEventListener('mousedown',close)},[])
+ const choose=(next:string)=>{const event={target:{value:next,name}} as unknown as ChangeEvent<HTMLSelectElement>;onChange?.(event);if(!controlled)setInternal(String(event.target.value));setOpen(false)}
+ const move=(direction:number)=>{const enabled=options.filter(x=>!x.disabled);const index=enabled.findIndex(x=>x.value===selected);choose(enabled[(index+direction+enabled.length)%enabled.length]?.value??selected)}
+ const current=options.find(x=>x.value===selected)
+ return <div ref={ref} data-label={ariaLabel} className={`custom-select ${open?'open':''} ${disabled?'disabled':''} ${className}`}>
+  <button type="button" className="custom-select-trigger" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} disabled={disabled} onClick={()=>setOpen(x=>!x)} onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();move(1)}if(e.key==='ArrowUp'){e.preventDefault();move(-1)}if(e.key==='Escape')setOpen(false)}}><span>{current?.label??'Select'}</span><ChevronDown size={15}/></button>
+  {open&&<div className="custom-select-menu" role="listbox" aria-label={ariaLabel}>{options.map(option=><button type="button" role="option" aria-selected={option.value===selected} disabled={option.disabled} className={option.value===selected?'selected':''} key={option.value} onClick={()=>choose(option.value)}><span>{option.label}</span>{option.value===selected&&<Check size={14}/>}</button>)}</div>}
+ </div>
+}

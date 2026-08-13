@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Activity, AlertTriangle, BarChart3, Bell, CalendarDays, ChevronDown, CircleGauge, ClipboardCheck, Clock3, FileWarning, Inbox, Link2, ListChecks, Menu, MessageSquare, Search, Settings, ShieldCheck, Sparkles, UserCheck, X } from 'lucide-react'
+import { Activity, AlertTriangle, BarChart3, Bell, CalendarDays, CircleGauge, ClipboardCheck, Clock3, FileWarning, Inbox, Link2, ListChecks, Menu, MessageSquare, Search, Settings, ShieldCheck, Sparkles, UserCheck, X } from 'lucide-react'
 import { useAppStore } from '../../stores/useAppStore'
 import type { Role } from '../../types/domain'
+import { CustomSelect } from '../ui'
 
 const sections=[
  {label:'Access overview',items:[['/','Access Command Centre',CircleGauge]]},
@@ -31,10 +32,12 @@ export const AppShell=({children}:{children:ReactNode})=>{
    <button className="menu-button" onClick={()=>setMobile(true)} aria-label="Open navigation"><Menu/></button><div className="facility"><span>Facility</span><strong>Westbridge University Hospital</strong></div>
    <div className="global-search"><Search size={17}/><input aria-label="Global search" value={search} onFocus={()=>setShowResults(true)} onChange={e=>{setSearch(e.target.value);setShowResults(true)}} onKeyDown={e=>{if(e.key==='Escape')setShowResults(false)}} placeholder="Search patient, referral ID, specialty..."/>{showResults&&search.length>1&&<div className="search-results" role="listbox" aria-label="Global search results">{groups.length?groups.map(group=><div className="search-group" key={group.label}><span>{group.label}</span>{group.items.map(item=><button key={`${group.label}${item.label}`} onClick={()=>go(item.path)}><Search size={14}/><span><strong>{item.label}</strong><small>{item.meta}</small></span></button>)}</div>):<p>No matching patients, referrals or appointments.</p>}</div>}</div>
    <div className="period"><CalendarDays size={16}/><span>13 Aug 2026</span></div>
-   <button className="notification-button" aria-label="Alerts" onClick={()=>openNotes('Alerts')}><AlertTriangle size={19}/>{notifications.some(n=>!n.read&&n.severity!=='info')&&<i/>}</button>
-   <button className="notification-button" aria-label="Notifications" onClick={()=>openNotes('Notifications')}><Bell size={19}/>{notifications.some(n=>!n.read)&&<i/>}</button>
-   {showNotes&&<div className="notifications" role="region" aria-label={`${notesMode} centre`}><h3>{notesMode}</h3>{visibleNotes.length?visibleNotes.slice(0,5).map(n=><div key={n.id} className={`note ${n.severity}`}><strong>{n.title}</strong><span>{n.detail}</span></div>):<p>No active {notesMode.toLowerCase()}.</p>}<button aria-label={`Close ${notesMode}`} onClick={()=>setShowNotes(false)}>Close</button></div>}
-   <span className="demo-badge">Demo environment</span><div className="profile"><div>LB</div><span><strong>Laura Bennett</strong><small>{role}</small></span><select aria-label="Simulated role" value={role} onChange={e=>setRole(e.target.value as Role)}>{(['Referral Administrator','Clinician','Scheduler','Access Manager','Consultant','Operations Manager','Administrator'] as Role[]).map(r=><option key={r}>{r}</option>)}</select><ChevronDown size={14}/></div>
+   <div className="header-notification-group">
+    <button className={`notification-button ${showNotes&&notesMode==='Alerts'?'active':''}`} aria-label="Alerts" onClick={()=>openNotes('Alerts')}><AlertTriangle size={19}/>{notifications.some(n=>!n.read&&n.severity!=='info')&&<i/>}</button>
+    <button className={`notification-button ${showNotes&&notesMode==='Notifications'?'active':''}`} aria-label="Notifications" onClick={()=>openNotes('Notifications')}><Bell size={19}/>{notifications.some(n=>!n.read)&&<i/>}</button>
+    {showNotes&&<div className={`notifications ${notesMode==='Alerts'?'alerts-panel':'notifications-panel'}`} role="region" aria-label={`${notesMode} centre`}><div className="notifications-head"><div><span>{notesMode==='Alerts'?'Attention required':'Recent activity'}</span><h3>{notesMode}</h3></div><button className="icon-button" aria-label={`Close ${notesMode}`} onClick={()=>setShowNotes(false)}><X size={17}/></button></div><div className="notifications-list">{visibleNotes.length?visibleNotes.map(n=><div key={n.id} className={`note ${n.severity}`}><i aria-hidden="true"/><div><strong>{n.title}</strong><span>{n.detail}</span></div></div>):<p className="notifications-empty">No active {notesMode.toLowerCase()}.</p>}</div><div className="notifications-foot"><span>{visibleNotes.length} {notesMode.toLowerCase()}</span><button onClick={()=>setShowNotes(false)}>Close panel</button></div></div>}
+   </div>
+   <span className="demo-badge">Demo environment</span><div className="profile"><div>LB</div><span><strong>Laura Bennett</strong><small>{role}</small></span><CustomSelect aria-label="Simulated role" value={role} onChange={e=>setRole(e.target.value as Role)}>{(['Referral Administrator','Clinician','Scheduler','Access Manager','Consultant','Operations Manager','Administrator'] as Role[]).map(r=><option key={r}>{r}</option>)}</CustomSelect></div>
   </header><main>{children}</main></div>
  </div>
 }

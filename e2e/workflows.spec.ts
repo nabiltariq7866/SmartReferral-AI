@@ -16,7 +16,7 @@ test('incomplete referral recovers and enters clinical waiting list',async({page
 })
 
 test('human specialty override persists into waiting list',async({page})=>{
- await completeEmmaReferral(page);await page.goto('/referrals/REF-2026-0842');await page.getByRole('button',{name:/Modify decision/}).click();await page.getByLabel('Final specialty').selectOption('Respiratory');await page.getByRole('button',{name:/Modify & approve/}).click();await expect(page.getByText(/Final: Respiratory/)).toBeVisible();await page.goto('/waiting-list');await expect(page.locator('tr').filter({hasText:'Emma Hughes'}).getByText('Respiratory')).toBeVisible()
+ await completeEmmaReferral(page);await page.goto('/referrals/REF-2026-0842');await page.getByRole('button',{name:/Modify decision/}).click();await page.getByRole('button',{name:'Final specialty'}).click();await page.getByRole('option',{name:'Respiratory'}).click();await page.getByRole('button',{name:/Modify & approve/}).click();await expect(page.getByText(/Final: Respiratory/)).toBeVisible();await page.goto('/waiting-list');await expect(page.locator('tr').filter({hasText:'Emma Hughes'}).getByText('Respiratory')).toBeVisible()
 })
 
 test('appointment cancellation creates a match opportunity',async({page})=>{

@@ -4,5 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import App from './App'
 import './styles.css'
+import './polish.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><BrowserRouter><App/><Toaster richColors position="bottom-right"/></BrowserRouter></React.StrictMode>)
