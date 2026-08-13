@@ -1,0 +1,18 @@
+import { useState } from 'react'
+import { CalendarDays, Clock, MapPin, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
+import { Badge, Button, Card, Empty, PageHeader } from '../components/ui'
+import { recommendSlots } from '../services/ai'
+import { useAppStore } from '../stores/useAppStore'
+import { daysWaiting, formatDate } from '../utils/domain'
+
+export default function Scheduling(){
+  const s=useAppStore(), nav=useNavigate()
+  const[tab,setTab]=useState('Best Matches')
+  const best=s.waitingList.filter(w=>w.status==='Active'&&w.readiness==='Complete').flatMap(w=>{const p=s.patients.find(p=>p.id===w.patientId)!;return recommendSlots(w,p,s.slots).slice(0,1).map(m=>({w,p,m}))}).sort((a,b)=>b.m.score-a.m.score)
+  return <><PageHeader title="Scheduling Intelligence" subtitle="Match clinically approved demand to available capacity with explainable recommendations." actions={<Button onClick={()=>setTab('Available Slots')}><CalendarDays size={16}/> Book appointment</Button>}/><div className="tabs standalone">{['Best Matches','Available Slots','Calendar','Capacity','Cancellations'].map(t=><button className={tab===t?'active':''} key={t} onClick={()=>setTab(t)}>{t}</button>)}</div>
+  {tab==='Best Matches'&&<div className="match-board"><Card className="match-context"><div className="eyebrow"><Sparkles size={14}/> Prioritised queue</div><h2>Best patient-to-slot matches</h2><p>Recommendations consider approved specialty and priority, readiness, target wait, preferences and available capacity.</p><div className="legend"><Badge tone="ai">AI recommendation</Badge><span>Human scheduler confirms every assignment</span></div></Card>{best.length?best.map(({w,p,m},i)=><Card key={`${w.id}${m.slot.id}`} className="match-row"><div className="rank">{i+1}</div><div className="match-patient"><span className="avatar">{p.name.split(' ').map(x=>x[0]).join('')}</span><div><h3>{p.name}</h3><p>{w.specialty} · {w.priority} · {daysWaiting(w.waitingSince)} days waiting</p></div></div><div className="match-arrow">→</div><div className="match-slot"><h3>{m.slot.practitioner}</h3><p><CalendarDays size={14}/>{formatDate(m.slot.date)} · <Clock size={14}/>{m.slot.start}</p><p><MapPin size={14}/>{m.slot.location}</p></div><div className="match-score"><Badge tone="ai">{m.quality} · {m.score}%</Badge><small>{m.reasons.slice(0,2).join(' · ')}</small></div><Button onClick={()=>{try{s.assignAppointment(w.id,m.slot.id);toast.success(`${p.name} scheduled`)}catch(e){toast.error((e as Error).message)}}}>Review & assign</Button></Card>):<Empty title="No matches available" detail="All scheduling-ready patients have been assigned or matching capacity is unavailable."/>}</div>}
+  {tab==='Available Slots'&&<Card><div className="slot-grid">{s.slots.map(sl=><article className="availability-card" key={sl.id}><div><Badge tone={sl.status==='Available'?'cyan':sl.status==='Booked'?'indigo':'warning'}>{sl.status}</Badge><span>{sl.id}</span></div><h3>{sl.practitioner}</h3><p>{sl.specialty} · {sl.clinic}</p><p><CalendarDays size={15}/>{formatDate(sl.date)} · {sl.start}</p><p><MapPin size={15}/>{sl.location}</p><div className="progress"><i style={{width:`${sl.booked/sl.capacity*100}%`}}/></div><small>{sl.booked} of {sl.capacity} booked</small></article>)}</div></Card>}
+  {tab==='Calendar'&&<Card><Button onClick={()=>nav('/calendar')}>Open appointment calendar</Button></Card>}{tab==='Capacity'&&<Card><Button onClick={()=>nav('/capacity')}>Open capacity management</Button></Card>}{tab==='Cancellations'&&<Card><Button onClick={()=>nav('/cancellation-matching')}>Open cancellation matching</Button></Card>}</>
+}

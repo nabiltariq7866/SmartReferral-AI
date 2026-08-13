@@ -1,0 +1,5 @@
+import { CalendarDays, Clock, MapPin, Sparkles } from 'lucide-react'
+import type { SlotMatch } from '../services/ai'
+import { Button, Badge } from './ui'
+import { formatDate } from '../utils/domain'
+export const SlotMatchCard=({match,index,onAssign}:{match:SlotMatch;index:number;onAssign:()=>void})=><article className={`slot-card ${index===0?'best':''}`}>{index===0&&<div className="best-label"><Sparkles size={14}/> Best match</div>}<div className="slot-title"><div><h3>{match.slot.practitioner}</h3><p>{match.slot.clinic}</p></div><Badge tone="ai">{match.quality} · {match.score}%</Badge></div><div className="slot-meta"><span><CalendarDays size={15}/>{formatDate(match.slot.date)}</span><span><Clock size={15}/>{match.slot.start} · {match.slot.duration} min</span><span><MapPin size={15}/>{match.slot.location}</span></div><div className="why"><strong>Why this recommendation?</strong>{match.reasons.map(r=><span key={r}>✓ {r}</span>)}</div>{match.tradeoff&&<p className="tradeoff">Trade-off: {match.tradeoff}</p>}<Button onClick={onAssign}>Assign appointment</Button></article>

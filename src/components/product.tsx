@@ -1,0 +1,15 @@
+import type { ReactNode } from 'react'
+import { ArrowRight, CalendarClock, Sparkles } from 'lucide-react'
+import type { Priority, Readiness, Referral, Risk, Slot } from '../types/domain'
+import { Badge, Card, ReadinessBadge, RiskBadge } from './ui'
+
+export function ReferralFlowStepper({stages,current}:{stages:{label:string;count?:number}[];current:number}){return <div className="referral-stepper" aria-label="Referral workflow">{stages.map((s,i)=><div className={i<=current?'complete':''} key={s.label}><span>{i<current?'✓':i+1}</span><strong>{s.label}</strong>{s.count!==undefined&&<small>{s.count.toLocaleString()}</small>}{i<stages.length-1&&<ArrowRight/>}</div>)}</div>}
+export function ReferralReadinessBadge({readiness}:{readiness:Readiness}){return <ReadinessBadge readiness={readiness}/>}
+export function AISpecialtySuggestion({specialty,confidence,reason}:{specialty:string;confidence:number;reason:string}){return <Card className="ai-suggestion"><div className="eyebrow"><Sparkles size={14}/> AI suggested specialty</div><h3>{specialty}</h3><Badge tone="ai">{confidence}% confidence</Badge><p>{reason}</p><small>AI-assisted routing · Clinical validation required</small></Card>}
+export function AIUrgencySuggestion({urgency,reason}:{urgency:Priority;reason:string}){return <Card className="ai-suggestion"><div className="eyebrow"><Sparkles size={14}/> AI suggested urgency</div><h3>{urgency}</h3><p>{reason}</p><small>Not a final clinical triage decision</small></Card>}
+export function WaitingRiskIndicator({risk}:{risk:Risk}){return <RiskBadge risk={risk}/>}
+export function CancellationOpportunityCard({slot,children}:{slot:Slot;children?:ReactNode}){return <Card className="cancellation-opportunity"><Badge tone="cyan"><CalendarClock size={13}/> Released capacity</Badge><h3>{slot.specialty} · {slot.practitioner}</h3><p>{slot.date} at {slot.start} · {slot.location}</p>{children}</Card>}
+export function CapacityPressureBar({waiting,slots}:{waiting:number;slots:number}){const pressure=slots?Math.min(100,Math.round(waiting/slots*60)):100;return <div className="capacity-pressure" aria-label={`Capacity pressure ${pressure}%`}><div className="progress"><i style={{width:`${pressure}%`}}/></div><span>{waiting.toLocaleString()} waiting · {slots.toLocaleString()} slots</span></div>}
+export function AccessInsightCard({title,children,action}:{title:string;children:ReactNode;action?:ReactNode}){return <Card className="ai-insight"><div className="eyebrow"><Sparkles size={14}/> AI access insight</div><h2>{title}</h2>{children}{action}<small>AI-generated operational recommendation · Human review required</small></Card>}
+export function ReferralComparison({referral}:{referral:Referral}){return <div className="referral-comparison"><div><span>AI suggestion</span><strong>{referral.aiSpecialty} · {referral.aiUrgency}</strong></div><ArrowRight/><div><span>Clinician decision</span><strong>{referral.finalSpecialty??'Pending'} · {referral.finalUrgency??'Pending'}</strong></div></div>}
+export function PatientPreferenceBadge({preference}:{preference:string}){return <Badge tone="cyan">{preference}</Badge>}
