@@ -171,3 +171,8 @@ body{font-size:15px;line-height:1.45}.nav-label{font-size:10px}.nav-section a{fo
 .alerts-panel .notifications-head{background:linear-gradient(180deg,#fffdf9,#fffaf1)}
 .alerts-panel .notifications-list{background:#fffaf4}
 @media(max-width:700px){.notifications{right:-8px!important}.notifications-list{max-height:55vh}}
+
+/* Keep sidebar destinations on one readable line. */
+.nav-section a{min-width:0;white-space:nowrap}
+.nav-section a>svg{flex:0 0 17px}
+.nav-section a>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
